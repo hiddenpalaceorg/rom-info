@@ -126,7 +126,6 @@ class ISO9660Handler(BaseHandler):
     def _read(self, offset, size):
         return super().read(offset, size)
 
-    # noinspection PyAugmentAssignment
     def read(self, offset=None, size=None, sector=0):
         if size is None:
             raise Exception("You must specify size.")
@@ -232,7 +231,6 @@ class ISO9660Handler(BaseHandler):
             if sector == self.pvd_sector:
                 break
 
-    # noinspection PyDictCreation
     def unpack_record(self, offset, sector):
         record = {}
 
