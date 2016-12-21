@@ -2,16 +2,15 @@
 import mmap
 import config
 from analyze import analyze_file
+from utils import open_mmaped
 
 
 def main():
     config.parse_args()
 
     for filename in config.files:
-        with open(filename, 'rb') as file_handle:
-            file = mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ)
+        with open_mmaped(filename, 'rb') as file:
             analyze_file(file, filename)
-            file.close()
 
 
 if __name__ == "__main__":

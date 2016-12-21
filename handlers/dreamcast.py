@@ -4,6 +4,7 @@ import re
 from collections import OrderedDict
 from .base_handler import BaseHandler
 from .iso9660 import ISO9660Handler
+from utils import open_mmaped
 
 
 class GDIParseError(Exception):
@@ -70,10 +71,7 @@ class GDIHandler(BaseHandler):
         for track in tracks:
             file_name = os.path.join(os.path.dirname(self.file_name), track['file_name'])
 
-            # TODO refactor this
-            with open(file_name, 'rb') as file_handle:
-                file = mmap.mmap(file_handle.fileno(), 0, access=mmap.ACCESS_READ)
-
+            with open_mmaped(file_name, 'rb') as file:
                 track_name = 'Track {}'.format(track['index'])
                 if track['type'] == 4:
                     handler = DCDataTrackHandler(file=file, file_name=file_name, sector_offset=track['sector'])
@@ -88,8 +86,6 @@ class GDIHandler(BaseHandler):
 
                 else:
                     track_info[track_name] = 'Unknown'
-
-                file.close()
 
         self.info['Tracks'] = track_info
 
