@@ -21,6 +21,8 @@ class ISO9660Handler(BaseHandler):
         self.sector_size = None
         self.pvd_sector = None
 
+        self._edc_table = None
+
     def test(self):
         if self._read(0x9311, 5) == b'CD001':
             self.format = 'raw'
@@ -101,11 +103,11 @@ class ISO9660Handler(BaseHandler):
     def find_sector_errors(self):
         errors = defaultdict(list)
 
-        n_p = n_q = 0
+        n_p = n_q = n_edc = 0
         n_sectors = len(self.file)//2352
 
         for i in range(n_sectors):
-            p, q = self.check_ecc(i)
+            p, q, edc = self.check_errors(i)
             if not p:
                 errors[i].append('p')
                 n_p += 1
@@ -114,10 +116,14 @@ class ISO9660Handler(BaseHandler):
                 errors[i].append('q')
                 n_q += 1
 
+            if not edc:
+                errors[i].append('edc')
+                n_edc += 1
+
             # Because this is so slow, show a status line.
             if not i & 0x7f or i == n_sectors-1:
-                print('\rChecking sector {} of {} ({:.2f}%)... found {} P errors, {} Q errors      '.format(
-                    i+1, n_sectors, (i+1)/n_sectors*100, n_p, n_q), end=" ")
+                print('\rChecking sector {} of {} ({:.2f}%)... found {} P errors, {} Q errors, {} EDC errors   '.format(
+                    i+1, n_sectors, (i+1)/n_sectors*100, n_p, n_q, n_edc), end=" ")
 
         print('\n')  # Print newlines.
 
@@ -308,21 +314,19 @@ class ISO9660Handler(BaseHandler):
 
         return ecc_p, ecc_q
 
-    def check_ecc(self, sector):
+    def check_errors(self, sector):
+        sector_edc = int.from_bytes(self._read(sector*2352+0x810, 4), byteorder='little')
         sector_ecc_p = self._read(sector*2352+0x81c, 86*2)
         sector_ecc_q = self._read(sector*2352+0x81c+86*2, 52*2)
 
         ecc_p, ecc_q = self.ecc(sector)
 
-        ecc_p_valid = ecc_q_valid = True
+        ecc_p_valid = (bytes(ecc_p) == sector_ecc_p)
+        ecc_q_valid = (bytes(ecc_q) == sector_ecc_q)
+        edc_valid = (self.edc(sector) == sector_edc)
 
-        if bytes(ecc_p) != sector_ecc_p:
-            ecc_p_valid = False
+        return ecc_p_valid, ecc_q_valid, edc_valid
 
-        if bytes(ecc_q) != sector_ecc_q:
-            ecc_q_valid = False
-
-        return ecc_p_valid, ecc_q_valid
 
     @staticmethod
     def rs_encode(msg):
@@ -369,3 +373,50 @@ class ISO9660Handler(BaseHandler):
                 msg[i+2] ^= gf_mul2(coef)         # m(i+2) -= 2 * m(i)
 
         return [msg[-2], msg[-1]]
+
+
+    def edc(self, sector):
+        """
+        The EDC code is a 32-bit CRC with polynomial P(x) = (x^16 + x^15 + x^2 + 1)(x^16 + x^2 + x + 1),
+        represented by 0xd8018001 in hex.
+
+        Original algorithm by Gary S. Brown, used by permission.
+
+        Source: ECMA-130, 14.3 (EDC field).
+        See also: https://en.wikipedia.org/wiki/Cyclic_redundancy_check
+                  http://www.ross.net/crc/download/crc_v3.txt
+                  http://www.hackersdelight.org/hdcodetxt/crc.c.txt
+
+
+        :param sector:
+        :return:
+        """
+        sector_data = self._read(sector*2352, 0x810)
+
+        if self._edc_table is None:
+            # Generate table
+            self._edc_table = [0]*256
+
+            for i in range(256):
+                crc = i
+                for j in range(8):
+                    subtract = crc & 1
+                    crc >>= 1
+                    if subtract:
+                        crc ^= 0xd8018001
+
+                self._edc_table[i] = crc
+
+
+        edc = 0
+        for byte in sector_data:
+            edc = (edc >> 8) ^ self._edc_table[(edc ^ byte) & 0xff]
+
+        return edc
+
+
+
+
+
+
+
