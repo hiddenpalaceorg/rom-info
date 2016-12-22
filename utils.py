@@ -22,3 +22,6 @@ class open_mmaped:
 
     def __getitem__(self, key):
         return self.mmap.__getitem__(key)
+
+    def __len__(self):
+        return self.mmap.__len__()
