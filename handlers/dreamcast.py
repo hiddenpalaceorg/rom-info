@@ -7,7 +7,7 @@ from .iso9660 import ISO9660Handler
 from utils import open_mmaped
 
 
-class GDIParseError(Exception):
+class GDIParseError(ValueError):
     pass
 
 
