@@ -20,13 +20,9 @@ def parse_args():
 
     parser.add_argument('files', metavar='FILE', nargs='+', help='ROMs, discs, etc.')
 
-    parser.add_argument('-i', '--info', action='store', default='all', metavar='TYPE')
     parser.add_argument('-x', '--extract', action='store_true', help='extract files from disc data tracks')
     parser.add_argument('-f', '--format', action='store', default='text', choices=output_formats, metavar='FORMAT',
                         help='use output format: text (default), wiki, json', dest='output_format')
-
-    parser.add_argument('-n', '--max-files', action='store', default=30,
-                        help='number of files to list when listing disc contents (default: 30)', metavar='N')
 
     parser.add_argument('--skip-sector-errors', action='store_true', help='skip sector error checks')  # TODO temporary
 
