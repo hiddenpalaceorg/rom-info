@@ -132,13 +132,7 @@ class ISO9660Handler(BaseHandler):
     def _read(self, offset, size):
         return super().read(offset, size)
 
-    def read(self, offset=None, size=None, sector=0):
-        if size is None:
-            raise Exception("You must specify size.")
-
-        if offset is None:
-            raise Exception("You must specify an offset.")
-
+    def read(self, offset, size, sector=0):
         sector_no = sector + offset//2048
         offset = offset % 2048
 
