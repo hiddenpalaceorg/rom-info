@@ -100,13 +100,18 @@ class ISO9660Handler(BaseHandler):
             if sector_errors:
                 self.info['Errors'] = sector_errors
 
+    def sectors(self):
+        yield from range(self.sector_count())
+
+    def sector_count(self):
+        return len(self.file) // self.sector_size
+
     def find_sector_errors(self):
         errors = defaultdict(list)
 
         n_p = n_q = n_edc = 0
-        n_sectors = len(self.file)//2352
 
-        for i in range(n_sectors):
+        for i in self.sectors():
             p, q, edc = self.check_errors(i)
             if not p:
                 errors[i].append('p')
@@ -121,9 +126,9 @@ class ISO9660Handler(BaseHandler):
                 n_edc += 1
 
             # Because this is so slow, show a status line.
-            if not i & 0x7f or i == n_sectors-1:
+            if not i & 0x7f or i == self.sector_count()-1:
                 print('\rChecking sector {} of {} ({:.2f}%)... found {} P errors, {} Q errors, {} EDC errors   '.format(
-                    i+1, n_sectors, (i+1)/n_sectors*100, n_p, n_q, n_edc), end=" ")
+                    i+1, self.sector_count(), (i+1)/self.sector_count()*100, n_p, n_q, n_edc), end=" ")
 
         print('\n')  # Print newlines.
 
