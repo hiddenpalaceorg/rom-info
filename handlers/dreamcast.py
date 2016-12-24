@@ -4,7 +4,7 @@ import re
 from collections import OrderedDict
 from .base_handler import BaseHandler
 from .iso9660 import ISO9660Handler
-from utils import open_mmaped
+from utils import MmappedFile, ConcatenatedFile
 
 
 class GDIParseError(ValueError):
@@ -66,15 +66,34 @@ class GDIHandler(BaseHandler):
 
     def get_info(self):
         tracks = self.parse()
+        for track in tracks:
+            track['path'] = os.path.join(os.path.dirname(self.file_name), track['file_name'])
+
+        if len(tracks) > 3 and tracks[2]['type'] == 4 and tracks[-1]['type'] == 4:
+            # Dreamcast discs often contain two data tracks (track 3 and the last track) in addition to track 1.
+            mixed_mode = True
+
+        else:
+            mixed_mode = False
 
         track_info = OrderedDict()
         for track in tracks:
-            file_name = os.path.join(os.path.dirname(self.file_name), track['file_name'])
+            if mixed_mode and track == tracks[-1]:
+                continue
 
-            with open_mmaped(file_name, 'rb') as file:
+            if mixed_mode and track['index'] == 3:
+                track_name = 'Track {}+{}'.format(track['index'], tracks[-1]['index'])
+                file = ConcatenatedFile(file_names=[track['path'], tracks[-1]['path']],
+                                        offsets=[0, (tracks[-1]['sector']-track['sector'])*2352])  # TODO handle different sector sizes
+
+            else:
                 track_name = 'Track {}'.format(track['index'])
+                file = MmappedFile(track['path'])
+
+
+            with file:
                 if track['type'] == 4:
-                    handler = DCDataTrackHandler(file=file, file_name=file_name, sector_offset=track['sector'])
+                    handler = DCDataTrackHandler(file=file, file_name=track['file_name'], sector_offset=track['sector'])
                     if handler.test():
                         handler.get_info()
                         track_info[track_name] = handler.info
