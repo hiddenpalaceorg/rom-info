@@ -23,6 +23,6 @@ The modified version is (note that the starting sector is smaller than the one f
 2 756 0 2352 track02.raw 0
 3 45000 4 2352 track03.bin 0
 4 545647 0 2352 track04.raw 0
-5 546248 4 2352 track05.bin 0
+5 544915 4 2352 track05.bin 0
 ```
 
