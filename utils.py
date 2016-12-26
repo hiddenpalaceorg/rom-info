@@ -24,6 +24,9 @@ class MmappedFile:
     def __getitem__(self, key):
         return self.mmap.__getitem__(key)
 
+    def ranges(self):
+        yield 0, 0, len(self)
+
     def __len__(self):
         return self.mmap.__len__()
 
@@ -61,13 +64,14 @@ class ConcatenatedFile:
             if stop is None:
                 stop = self.offsets[-1] + self.lengths[-1]
 
-
             # Find start
             found = False
-            for i in reversed(range(len(self.files))):
-                if start >= self.offsets[i]:
-                    if self.offsets[i] + self.lengths[i] < stop:
-                        print(key, self.offsets, self.lengths, self.offsets[i]+self.lengths[i], stop)
+            file_start = file_stop = None
+
+            for file, file_start, file_stop in reversed(list(self.ranges())):
+                if start >= file_start:
+                    if file_stop < stop:
+                        # print(key, self.offsets, self.lengths, offset+length, stop)
                         raise ValueError("Reads must be within a single chunk")
 
                     found = True
@@ -76,9 +80,13 @@ class ConcatenatedFile:
             if not found:
                 raise ValueError("No chunk containing range")
 
-            file_start = start - self.offsets[i]
-            file_stop = stop - self.offsets[i]
-            return self.files[i][file_start:file_stop:step]
+            start = start - file_start
+            stop = stop - file_start
+            return self.files[file][start:stop:step]
+
+    def ranges(self):
+        for i in range(len(self.files)):
+            yield i, self.offsets[i], self.offsets[i]+self.lengths[i]
 
     def __len__(self):
         length = sum(self.lengths)

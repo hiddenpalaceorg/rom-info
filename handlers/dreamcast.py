@@ -93,7 +93,6 @@ class GDIHandler(BaseHandler):
                 track_name = 'Track {}'.format(track['index'])
                 file = MmappedFile(track['path'])
 
-
             with file:
                 if track['type'] == 4:
                     handler = DCDataTrackHandler(file=file, file_name=track['file_name'], sector_offset=track['sector'])

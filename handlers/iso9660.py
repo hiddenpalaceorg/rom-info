@@ -102,7 +102,11 @@ class ISO9660Handler(BaseHandler):
                 self.info['Errors'] = sector_errors
 
     def sectors(self):
-        yield from range(self.sector_count())
+        for _, file_start, file_stop in self.file.ranges():
+            sector_start = file_start // self.sector_size
+            sector_stop = file_stop // self.sector_size
+
+            yield from range(sector_start, sector_stop)
 
     def sector_count(self):
         return len(self.file) // self.sector_size
