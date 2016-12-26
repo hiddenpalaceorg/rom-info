@@ -82,9 +82,12 @@ class GDIHandler(BaseHandler):
                 continue
 
             if mixed_mode and track['index'] == 3:
-                track_name = 'Track {}+{}'.format(track['index'], tracks[-1]['index'])
-                file = ConcatenatedFile(file_names=[track['path'], tracks[-1]['path']],
-                                        offsets=[0, (tracks[-1]['sector']-track['sector'])*2352])  # TODO handle different sector sizes
+                last_track = tracks[-1]
+                offset_gap = (last_track['sector'] - track['sector']) * 2352
+                track_name = 'Track {} + Track {}'.format(track['index'], last_track['index'])
+
+                file = ConcatenatedFile(file_names=[track['path'], last_track['path']],
+                                        offsets=[0, offset_gap])  # TODO handle different sector sizes
 
             else:
                 track_name = 'Track {}'.format(track['index'])
