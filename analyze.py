@@ -40,8 +40,6 @@ def find_handler(file, file_name):
     for handler_class in handlers:
         handler = handler_class(file=file, file_name=file_name)
         if handler.test():
-            handler.get_info()
-
             return handler
 
     return None
@@ -51,6 +49,8 @@ def analyze_file(file, file_name):
     handler = find_handler(file, file_name)
     if not handler:
         return
+
+    handler.get_info()
 
     # TODO
     if config.output_format == 'text':
