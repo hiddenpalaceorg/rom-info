@@ -12,7 +12,7 @@
    
 #### Requirements
 
- * Python 3.5
+ * Python 3.3
 
 #### Example output
 
