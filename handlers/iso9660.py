@@ -117,18 +117,18 @@ class ISO9660Handler(BaseHandler):
 
         n_p = n_q = n_edc = 0
 
-        for i in self.sectors():
-            p, q, edc = self.check_errors(i)
+        for i, sector in enumerate(self.sectors()):
+            p, q, edc = self.check_errors(sector)
             if not p:
-                errors[i].append('p')
+                errors[sector].append('p')
                 n_p += 1
 
             if not q:
-                errors[i].append('q')
+                errors[sector].append('q')
                 n_q += 1
 
             if not edc:
-                errors[i].append('edc')
+                errors[sector].append('edc')
                 n_edc += 1
 
             # Because this is so slow, show a status line.
