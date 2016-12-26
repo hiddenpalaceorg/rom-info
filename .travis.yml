@@ -10,7 +10,7 @@ python:
   - "3.6-dev"
   - "nightly"
 
-script: coverage run -m py.test
+script: coverage run --source . -m py.test
 
 after_success:
       coveralls
