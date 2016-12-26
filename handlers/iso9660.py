@@ -9,6 +9,7 @@ from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
 from zlib import crc32
 import config
+from utils import print_status
 from .base_handler import BaseHandler
 
 
@@ -132,10 +133,10 @@ class ISO9660Handler(BaseHandler):
 
             # Because this is so slow, show a status line.
             if not i & 0x7f or i == self.sector_count()-1:
-                print('\rChecking sector {} of {} ({:.2f}%)... found {} P errors, {} Q errors, {} EDC errors   '.format(
-                    i+1, self.sector_count(), (i+1)/self.sector_count()*100, n_p, n_q, n_edc), end=" ")
+                print_status('Checking sector {} of {} ({:.2f}%)... found {} P errors, {} Q errors, {} EDC errors   '.format(
+                    i+1, self.sector_count(), (i+1)/self.sector_count()*100, n_p, n_q, n_edc))
 
-        print('\n')  # Print newlines.
+        print_status('\n')  # Print newlines.
 
         return errors
 

@@ -1,4 +1,5 @@
 import mmap
+import sys
 
 
 class MmappedFile:
@@ -92,3 +93,7 @@ class ConcatenatedFile:
         length = sum(self.lengths)
 
         return length
+
+
+def print_status(status):
+    print('\r'+status, file=sys.stderr, end=" ")
