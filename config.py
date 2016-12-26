@@ -15,7 +15,7 @@ class TerseHelpFormatter(argparse.HelpFormatter):
 output_formats = ('text', 'wiki', 'json')
 
 
-def parse_args():
+def parse_args(args=None):
     parser = argparse.ArgumentParser(formatter_class=TerseHelpFormatter)
 
     parser.add_argument('files', metavar='FILE', nargs='+', help='ROMs, discs, etc.')
@@ -27,4 +27,4 @@ def parse_args():
     parser.add_argument('--skip-sector-errors', action='store_true', help='skip sector error checks')  # TODO temporary
 
     current_module = sys.modules[__name__]
-    parser.parse_args(namespace=current_module)
+    parser.parse_args(namespace=current_module, args=args)
