@@ -3,6 +3,7 @@ Handle ISO 9660 disc image files.
 
 Format reference: http://wiki.osdev.org/ISO_9660
 """
+import re
 import struct
 from collections import OrderedDict, defaultdict
 from datetime import datetime, timedelta
@@ -183,13 +184,24 @@ class ISO9660Handler(BaseHandler):
             if value == b'0000000000000000\x00':
                 return ''
 
-            dt = datetime.strptime(value[:14].decode('ascii'), '%Y%m%d%H%M%S')
+            try:
+                dt = datetime.strptime(value[:14].decode('ascii'), '%Y%m%d%H%M%S')
 
-            hundredths = int(value[14:16].decode('ascii'))
-            dt += timedelta(milliseconds=hundredths*10)
-            # tz = value[16]  # TODO
+                hundredths = int(value[14:16].decode('ascii'))
+                dt += timedelta(milliseconds=hundredths*10)
+                # tz = value[16]  # TODO
 
-            return dt
+                return dt
+
+            except ValueError:
+                # some dates are malformed
+                value = value.decode('ascii')
+                value = re.sub('\W', '.', value)
+
+                dt = '{}-{}-{} {}:{}:{}'.format(value[0:4], value[4:6], value[6:8],
+                                                value[8:10], value[10:12], value[12:14])
+
+                return dt
 
         elif value_type == 'iso_string':
             # strA and strD
