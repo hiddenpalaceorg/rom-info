@@ -8,8 +8,8 @@ from analyze import pretty_print
 
 
 def test_namco_gdi():
-    file_name = "namco_museum/disc.gdi"
-    with open("namco_museum_output.txt") as f:
+    file_name = "tests/handlers/dreamcast/namco_museum/disc.gdi"
+    with open("tests/handlers/dreamcast/namco_museum_output.txt") as f:
         expected_output = f.read()
 
     config.skip_sector_errors = False
