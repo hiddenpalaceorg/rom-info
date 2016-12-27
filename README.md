@@ -1,7 +1,7 @@
 ## ROM info
 
- [![Travis](https://img.shields.io/travis/drx/rom-info.svg)]()
- [![Coveralls](https://img.shields.io/coveralls/drx/rom-info.svg)]()
+ [![Travis](https://img.shields.io/travis/drx/rom-info.svg)](https://travis-ci.org/drx/rom-info)
+ [![Coveralls](https://img.shields.io/coveralls/drx/rom-info.svg)](https://coveralls.io/github/drx/rom-info)
 
  ROM info is a utility for extracting information from ROMs and disc images. It is primarily meant to supplement the [Hidden palace video game prototype wiki](http://hiddenpalace.org/Main_Page).
 
