@@ -4,8 +4,8 @@ from analyze import analyze_file
 from utils import MmappedFile
 
 
-def main():
-    config.parse_args()
+def main(args=None):
+    config.parse_args(args=args)
 
     for filename in config.files:
         with MmappedFile(filename) as file:
