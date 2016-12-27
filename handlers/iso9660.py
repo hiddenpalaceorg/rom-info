@@ -25,15 +25,43 @@ class ISO9660Handler(BaseHandler):
 
         self._edc_table = None
 
+        self.data_size = None
+        self.edc_offset = None
+        self.ecc_offset = None
+
     def test(self):
-        if self._read(0x9311, 5) == b'CD001':
-            self.format = 'raw'
+        if self.read_raw(0x9311, 5) == b'CD001' and self.read_raw(0x0f, 1) == b'\x01':
+            self.format = 'mode1'
             self.sector_size = 2352
+            self.data_size = 2048
+            self.edc_offset = 0x810
+            self.ecc_offset = 0x81c
             return True
 
-        elif self._read(0x8001, 5) == b'CD001':
+        if self.read_raw(0x9319, 5) == b'CD001' and self.read_raw(0x0f, 1) == b'\x02':
+            if self.read_raw(0x12, 1)[0] & 0x20:
+                self.format = 'mode2form2'
+                self.sector_size = 2352
+                self.data_size = 2324
+                self.edc_offset = None  # 0x92c
+                self.ecc_offset = None
+                return True
+
+            else:
+                self.format = 'mode2form1'
+                self.sector_size = 2352
+                self.data_size = 2048
+                self.edc_offset = None  # 0x818
+                self.ecc_offset = None  # 0x81c
+                return True
+
+        elif self.read_raw(0x8001, 5) == b'CD001':
             self.format = 'iso'
             self.sector_size = 2048
+            self.data_size = 2048
+            self.edc_offset = None
+            self.ecc_offset = None
+
             return True
 
         else:
@@ -140,17 +168,17 @@ class ISO9660Handler(BaseHandler):
 
         return errors
 
-    def _read(self, offset, size):
+    def read_raw(self, offset, size):
         return super().read(offset, size)
 
     def read(self, offset, size, sector=0):
-        sector_no = sector + offset//2048
-        offset = offset % 2048
+        sector_no = sector + offset//self.data_size
+        offset = offset % self.data_size
 
         chunks = []
         while size > 0:
             sector = self.read_sector(sector_no)
-            chunk_size = min(2048-offset, size)
+            chunk_size = min(self.data_size-offset, size)
 
             chunks.append(sector[offset:offset+chunk_size])
 
@@ -160,12 +188,21 @@ class ISO9660Handler(BaseHandler):
 
         return b''.join(chunks)
 
-    def read_sector(self, sector_no):
-        if self.format == 'raw':
-            return self._read(sector_no*self.sector_size + 0x10, 2048)
+    def read_sector(self, sector_no, raw=False):
+        if raw:
+            return self.read_raw(sector_no*self.sector_size, self.sector_size)
+
+        if self.format == 'mode1':
+            return self.read_raw(sector_no*self.sector_size + 0x10, 2048)
+
+        elif self.format == 'mode2form1':
+            return self.read_raw(sector_no*self.sector_size + 0x18, 2324)
+
+        elif self.format == 'mode2form2':
+            return self.read_raw(sector_no*self.sector_size + 0x18, 2048)
 
         elif self.format == 'iso':
-            return self._read(sector_no*self.sector_size, 2048)
+            return self.read_raw(sector_no*self.sector_size, 2048)
 
     def unpack(self, value_type, offset, size, sector):
         format_dict = {
@@ -308,7 +345,7 @@ class ISO9660Handler(BaseHandler):
         ecc_p = [0]*2*86
         ecc_q = [0]*2*52
 
-        sector_data = self._read(sector*2352, 2352)
+        sector_data = self.read_sector(sector, raw=True)
 
         # P vectors
         for major in range(86):
@@ -331,15 +368,21 @@ class ISO9660Handler(BaseHandler):
         return ecc_p, ecc_q
 
     def check_errors(self, sector):
-        sector_edc = int.from_bytes(self._read(sector*2352+0x810, 4), byteorder='little')
-        sector_ecc_p = self._read(sector*2352+0x81c, 86*2)
-        sector_ecc_q = self._read(sector*2352+0x81c+86*2, 52*2)
+        edc_valid = ecc_p_valid = ecc_q_valid = True
 
-        ecc_p, ecc_q = self.ecc(sector)
+        if self.edc_offset is not None:
+            sector_edc = int.from_bytes(self.read_raw(sector*2352+self.edc_offset, 4), byteorder='little')
 
-        ecc_p_valid = (bytes(ecc_p) == sector_ecc_p)
-        ecc_q_valid = (bytes(ecc_q) == sector_ecc_q)
-        edc_valid = (self.edc(sector) == sector_edc)
+            edc_valid = (sector_edc == 0 or self.edc(sector) == sector_edc)
+
+        if self.ecc_offset is not None:
+            sector_ecc_p = self.read_raw(sector*2352+0x81c, 86*2)
+            sector_ecc_q = self.read_raw(sector*2352+0x81c+86*2, 52*2)
+
+            ecc_p, ecc_q = self.ecc(sector)
+
+            ecc_p_valid = (bytes(ecc_p) == sector_ecc_p)
+            ecc_q_valid = (bytes(ecc_q) == sector_ecc_q)
 
         return ecc_p_valid, ecc_q_valid, edc_valid
 
@@ -407,7 +450,8 @@ class ISO9660Handler(BaseHandler):
         :param sector:
         :return:
         """
-        sector_data = self._read(sector*2352, 0x810)
+        sector_data = self.read_raw(sector*2352, self.edc_offset)
+        #sector_data = self.read_raw(sector*2352+0x10, 0x808)
 
         if self._edc_table is None:
             # Generate table
