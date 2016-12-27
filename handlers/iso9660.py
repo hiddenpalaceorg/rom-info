@@ -272,7 +272,8 @@ class ISO9660Handler(BaseHandler):
             record = self.unpack_record(offset, sector)
 
             if record['record_size'] == 0:
-                break
+                offset += self.data_size - offset % self.data_size
+                continue
 
             if sector != self.pvd_sector:
                 record['path'] = path + '/' + record['name']
