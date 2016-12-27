@@ -28,10 +28,10 @@ Tracks:
       Expiration date: 2009-04-16 11:35:51.970000
 
     Files:
-      /ABSTRACT.TXT (2000-05-03 15:07:50, crc32: 6a08f334, 72 bytes, sector: 21)
-      /BIBLIOGR.TXT (2000-05-03 15:08:06, crc32: d92e100d, 57 bytes, sector: 22)
-      /COPYRIGH.TXT (2000-05-03 15:07:24, crc32: da6eba54, 71 bytes, sector: 23)
-      /WARNING.DA   (1999-11-09 12:28:44, crc32: d9c0ac53, 883648 bytes, sector: 24)
+      /ABSTRACT.TXT (2000-05-03 15:07:50, crc32: 6a08f334, sector: 21, 72 bytes)
+      /BIBLIOGR.TXT (2000-05-03 15:08:06, crc32: d92e100d, sector: 22, 57 bytes)
+      /COPYRIGH.TXT (2000-05-03 15:07:24, crc32: da6eba54, sector: 23, 71 bytes)
+      /WARNING.DA   (1999-11-09 12:28:44, crc32: d9c0ac53, sector: 24, 883648 bytes)
 
 
   Track 2: Audio track
@@ -64,11 +64,11 @@ Tracks:
       Expiration date: 2009-04-16 11:35:51.970000
 
     Files:
-      /1ST_READ.BIN (2000-06-21 14:46:58, crc32: 41ace476, 1697028 bytes, sector: 503171)
-      /DATA0.BLT    (2000-06-01 12:38:34, crc32: eeeaa6d2, 3900124 bytes, sector: 501266)
-      /MANATEE.DRV  (1999-11-09 12:26:26, crc32: 655a4f5d, 33568 bytes, sector: 501248)
-      /STREAM.MLT   (2000-04-17 17:31:02, crc32: 7d89a853, 288 bytes, sector: 501265)
-      /WARNING.DA   (1999-11-09 12:28:44, crc32: d9c0ac53, 883648 bytes, sector: 499915)
+      /1ST_READ.BIN (2000-06-21 14:46:58, crc32: 41ace476, sector: 503171, 1697028 bytes)
+      /DATA0.BLT    (2000-06-01 12:38:34, crc32: eeeaa6d2, sector: 501266, 3900124 bytes)
+      /MANATEE.DRV  (1999-11-09 12:26:26, crc32: 655a4f5d, sector: 501248, 33568 bytes)
+      /STREAM.MLT   (2000-04-17 17:31:02, crc32: 7d89a853, sector: 501265, 288 bytes)
+      /WARNING.DA   (1999-11-09 12:28:44, crc32: d9c0ac53, sector: 499915, 883648 bytes)
 
 
   Track 4: Audio track

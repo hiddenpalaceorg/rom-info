@@ -16,9 +16,9 @@ def pretty_print(obj, indent=0):
 
             pretty = ''
             for file in files.values():
-                pretty += '{}{:<{}}({}, crc32: {}, {} bytes, sector: {})\n'.format(padding, file['path'], path_padding,
+                pretty += '{}{:<{}}({}, crc32: {}, sector: {}, {} bytes)\n'.format(padding, file['path'], path_padding,
                                                                                    file['date'], file['crc32'],
-                                                                                   file['size'], file['sector'])
+                                                                                   file['sector'], file['size'])
 
             return pretty
 
