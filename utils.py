@@ -4,7 +4,12 @@ import sys
 
 class MmappedFile:
     def __init__(self, file_name, open_mode='rb', mmap_access=mmap.ACCESS_READ, **kwargs):
-        self.file = open(file_name, mode=open_mode, **kwargs)
+        try:
+            self.file = open(file_name, mode=open_mode, **kwargs)
+        except OSError as e:
+            print(e, file=sys.stderr)
+            sys.exit(1)
+
         self.mmap = None
         self.mmap_access = mmap_access
 
