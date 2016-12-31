@@ -35,7 +35,7 @@ Tracks:
 
 
   Track 2: Audio track
-  Track 3 + Track 5:
+  Track 3+5:
     Header:
       Hardware ID: SEGA SEGAKATANA 
       Maker ID: SEGA ENTERPRISES
