@@ -84,7 +84,7 @@ class GDIHandler(BaseHandler):
             if mixed_mode and track['index'] == 3:
                 last_track = tracks[-1]
                 offset_gap = (last_track['sector'] - track['sector']) * 2352
-                track_name = 'Track {} + Track {}'.format(track['index'], last_track['index'])
+                track_name = 'Track {}+{}'.format(track['index'], last_track['index'])
 
                 file = ConcatenatedFile(file_names=[track['path'], last_track['path']],
                                         offsets=[0, offset_gap])  # TODO handle different sector sizes
@@ -95,7 +95,7 @@ class GDIHandler(BaseHandler):
 
             with file:
                 if track['type'] == 4:
-                    handler = DCDataTrackHandler(file=file, file_name=track['file_name'], sector_offset=track['sector'])
+                    handler = DCDataTrackHandler(file=file, file_name=track['file_name'], sector_offset=track['sector'], track_name=track_name)
                     if handler.test():
                         handler.get_info()
                         track_info[track_name] = handler.info

@@ -3,6 +3,7 @@ Handle ISO 9660 disc image files.
 
 Format reference: http://wiki.osdev.org/ISO_9660
 """
+import os
 import re
 import struct
 from collections import OrderedDict, defaultdict
@@ -14,10 +15,11 @@ from .base_handler import BaseHandler
 
 
 class ISO9660Handler(BaseHandler):
-    def __init__(self, sector_offset=0, *args, **kwargs):
+    def __init__(self, sector_offset=0, track_name="", *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.sector_offset = sector_offset
+        self.track_name = track_name
 
         self.format = None
         self.sector_size = None
@@ -112,6 +114,13 @@ class ISO9660Handler(BaseHandler):
 
         self.info['Volume'] = volume_info
 
+        # TODO: this is pretty horrible, refactor
+        extract_dir = None
+        directory_times = []
+        if config.extract is not None:
+            extract_dir = os.path.join(config.extract, volume_info['Name'], self.track_name)
+            os.makedirs(extract_dir, exist_ok=True)
+
         file_info = OrderedDict()
 
         for file in self.files():
@@ -121,7 +130,40 @@ class ISO9660Handler(BaseHandler):
             contents = self.read(0, file['size'], file['sector'])
             file['crc32'] = '{:08x}'.format(crc32(contents))
 
+            if config.extract is not None:
+                path = os.path.join(extract_dir, file['path'].lstrip('/'))
+                if file['is_directory']:
+                    os.makedirs(path, exist_ok=True)
+
+                    if isinstance(file['date'], datetime):
+                        # Save the directory modification time for later. If wew were to set it now,
+                        # it would be overridden by extracting files that are within it.
+                        timestamp = file['date'].timestamp()
+                        directory_times.append((path, timestamp))
+
+                if not file['is_directory']:
+                    os.makedirs(os.path.dirname(path), exist_ok=True)
+
+                    if self.track_name:
+                        display_name = ' '+self.track_name
+                    else:
+                        display_name = ''
+
+                    print_status('Extracting{}: {:<80}   '.format(display_name, file['path']))
+
+                    with open(path, "wb") as f:
+                        f.write(contents)
+
+                        if isinstance(file['date'], datetime):
+                            timestamp = file['date'].timestamp()
+                            os.utime(path, (timestamp, timestamp))
+
             file_info[file['path']] = file
+
+        if config.extract is not None:
+            print_status("\n")
+            for path, timestamp in directory_times:
+                os.utime(path, (timestamp, timestamp))
 
         self.info['Files'] = {'type': 'file_list', 'value': file_info}
 

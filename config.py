@@ -20,7 +20,7 @@ def parse_args(args=None):
 
     parser.add_argument('files', metavar='FILE', nargs='+', help='ROMs, discs, etc.')
 
-    parser.add_argument('-x', '--extract', action='store_true', help='extract files from disc data tracks')
+    parser.add_argument('-x', '--extract', action='store', help='extract files from disc data tracks', metavar='DIR')
     parser.add_argument('-f', '--format', action='store', default='text', choices=output_formats, metavar='FORMAT',
                         help='use output format: text (default), wiki, json', dest='output_format')
 
