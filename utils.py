@@ -7,15 +7,28 @@ class MmappedFile:
         try:
             self.file = open(file_name, mode=open_mode, **kwargs)
         except OSError as e:
-            print(e, file=sys.stderr)
-            sys.exit(1)
+            raise SystemExit(e)
 
+        self.file_name = file_name
         self.mmap = None
         self.mmap_access = mmap_access
 
     def __enter__(self):
         self.file.__enter__()
-        self.mmap = mmap.mmap(self.file.fileno(), 0, access=self.mmap_access)
+        try:
+            self.mmap = mmap.mmap(self.file.fileno(), 0, access=self.mmap_access)
+        except ValueError as e:
+            if 'mmap length' in str(e) and sys.maxsize < 2**32:
+                raise SystemExit('Could not open {}.\n\n'
+                                 'This is an issue with 32-bit mmap.'
+                                 ' Please install 64-bit Python to handle files this big.'.format(self.file_name))
+            else:
+                raise SystemExit('Could not open {}: {}', self.file_name, e)
+        except OSError as e:
+            if e.winerror == 8 and sys.maxsize < 2**32:
+                raise SystemExit('Could not open {}.\n\n'
+                                 'This is an issue with 32-bit Python/Windows and mmap.'
+                                 ' Please install 64-bit Python to handle files this big.'.format(self.file_name))
 
         return self
 
@@ -23,9 +36,6 @@ class MmappedFile:
         self.mmap.close()
 
         return self.file.__exit__(exc_type, exc_val, exc_tb)
-
-    def __getattr__(self, name):
-        return getattr(self.mmap, name)
 
     def __getitem__(self, key):
         return self.mmap.__getitem__(key)

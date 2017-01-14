@@ -20,10 +20,8 @@ def test_no_file_specified(capsys):
     assert 'the following arguments are required: FILE' in err
 
 
-def test_file_not_found(capsys):
-    with pytest.raises(SystemExit):
+def test_file_not_found():
+    with pytest.raises(SystemExit) as excinfo:
         main(['file/does/not/exist.bin'])
 
-    out, err = capsys.readouterr()
-
-    assert 'No such file' in err
+    assert 'No such file' in str(excinfo.value)

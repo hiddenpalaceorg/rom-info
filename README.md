@@ -15,7 +15,7 @@
    
 #### Requirements
 
- * Python 3.3
+ * Python 3.3 (64-bit recommended) or PyPy3 5.5.0
 
 #### Example output
 
