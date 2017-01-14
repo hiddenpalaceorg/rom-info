@@ -48,6 +48,7 @@ def find_handler(file, file_name):
 def analyze_file(file, file_name):
     handler = find_handler(file, file_name)
     if not handler:
+        print('Unknown file')
         return
 
     handler.get_info()
